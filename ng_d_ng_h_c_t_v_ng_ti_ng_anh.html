@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học Từ Vựng Tiếng Anh Vui Nhộn</title>
+    <!-- Tải Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tải Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0fdfa; /* Nền xanh mint nhẹ nhàng */
+        }
+        
+        /* Cấu hình hiệu ứng lật thẻ 3D */
+        .flip-container {
+            perspective: 1000px;
+        }
+        .flip-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+        .flip-container.flipped .flip-inner {
+            transform: rotateY(180deg);
+        }
+        .flip-front, .flip-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        .flip-front {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 2px solid #e2e8f0;
+        }
+        .flip-back {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            transform: rotateY(180deg);
+            border: 2px solid #2563eb;
+        }
+
+        /* Hoạt ảnh nút mượt mà */
+        .btn-transition {
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-transition:active {
+            transform: scale(0.95);
+        }
+        
+        /* Tùy chỉnh màu các nút trắc nghiệm */
+        .quiz-option {
+            transition: all 0.3s ease;
+        }
+        .quiz-option:hover:not(:disabled) {
+            background-color: #f1f5f9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .quiz-option.correct {
+            background-color: #10b981 !important; /* Xanh lá */
+            color: white !important;
+            border-color: #059669 !important;
+        }
+        .quiz-option.wrong {
+            background-color: #ef4444 !important; /* Đỏ */
+            color: white !important;
+            border-color: #dc2626 !important;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm py-4">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <h1 class="text-2xl md:text-3xl font-extrabold text-blue-600">✨ Chinh Phục Từ Vựng ✨</h1>
+            <p class="text-sm text-slate-500 mt-1">Học nhanh - Nhớ lâu - Điểm cao</p>
+        </div>
+    </header>
+
+    <!-- Thanh Điều Hướng (Tabs) -->
+    <div class="max-w-md mx-auto w-full px-4 mt-6">
+        <div class="flex bg-white rounded-full p-1 shadow-md border border-slate-100">
+            <button id="tab-flashcard" onclick="switchTab('flashcard')" class="flex-1 py-2 px-4 rounded-full text-sm font-semibold transition-colors duration-300 bg-blue-100 text-blue-700">
+                🃏 Lật Thẻ (Flashcards)
+            </button>
+            <button id="tab-quiz" onclick="switchTab('quiz')" class="flex-1 py-2 px-4 rounded-full text-sm font-semibold text-slate-500 transition-colors duration-300 hover:text-slate-700">
+                🎯 Làm Trắc Nghiệm (Quiz)
+            </button>
+        </div>
+    </div>
+
+    <!-- Vùng Nội Dung Chính -->
+    <main class="flex-1 max-w-2xl mx-auto w-full px-4 py-8 flex flex-col justify-center">
+
+        <!-- ===== SECTION FLASHCARD ===== -->
+        <section id="section-flashcard" class="w-full flex flex-col items-center">
+            
+            <!-- Vùng tiến trình -->
+            <div class="mb-4 bg-white px-4 py-1.5 rounded-full shadow-sm text-sm font-semibold text-slate-600 border border-slate-200">
+                Thẻ số: <span id="fc-counter" class="text-blue-600 font-bold">1/65</span>
+            </div>
+
+            <!-- Thẻ Flashcard -->
+            <div id="flashcard" class="flip-container w-full max-w-sm h-72 md:h-80 cursor-pointer" onclick="toggleCard()">
+                <div class="flip-inner">
+                    <!-- Mặt trước -->
+                    <div class="flip-front text-center">
+                        <h2 id="fc-word" class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-2 tracking-tight">word</h2>
+                        <span id="fc-type" class="inline-block px-3 py-1 bg-blue-50 text-blue-600 text-xs font-bold rounded-full mb-3 uppercase tracking-wider">type</span>
+                        <p id="fc-phonetic" class="text-lg md:text-xl text-slate-500 font-medium">/phonetic/</p>
+                        <p class="text-xs text-slate-400 mt-6 mt-auto">Chạm để xem nghĩa 👆</p>
+                    </div>
+                    <!-- Mặt sau -->
+                    <div class="flip-back text-center">
+                        <h3 class="text-xl text-blue-100 mb-2 font-medium">Nghĩa là:</h3>
+                        <p id="fc-meaning" class="text-2xl md:text-3xl font-bold leading-tight">Ý nghĩa tiếng Việt</p>
+                        <p class="text-xs text-blue-200 mt-6 mt-auto">Chạm để quay lại 👆</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nút điều khiển Flashcard -->
+            <div class="flex justify-between w-full max-w-sm mt-8 gap-4">
+                <button onclick="prevCard()" class="btn-transition flex-1 bg-white border-2 border-slate-200 text-slate-600 font-bold py-3 px-6 rounded-xl hover:bg-slate-50 hover:border-slate-300 flex items-center justify-center gap-2">
+                    <span>⬅️</span> Trước
+                </button>
+                <button onclick="nextCard()" class="btn-transition flex-1 bg-blue-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:bg-blue-700 hover:shadow-xl flex items-center justify-center gap-2">
+                    Tiếp <span>➡️</span>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ===== SECTION QUIZ ===== -->
+        <section id="section-quiz" class="w-full flex-col items-center hidden">
+            
+            <!-- Điểm số -->
+            <div class="w-full flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold text-slate-700">Câu hỏi trắc nghiệm</h3>
+                <div class="bg-amber-100 text-amber-700 px-4 py-2 rounded-xl font-bold border border-amber-200 shadow-sm">
+                    🏆 Điểm: <span id="quiz-score" class="text-xl">0</span>
+                </div>
+            </div>
+
+            <!-- Khung câu hỏi -->
+            <div class="bg-white w-full rounded-2xl shadow-lg border border-slate-100 p-6 md:p-8 text-center mb-6 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-500"></div>
+                <p class="text-sm text-slate-500 font-semibold mb-2 uppercase tracking-wide">Từ này có nghĩa là gì?</p>
+                <h2 id="quiz-word" class="text-3xl md:text-4xl font-black text-slate-800 mb-2">Word</h2>
+                <p id="quiz-phonetic" class="text-slate-400 font-medium mb-6">/phonetic/</p>
+
+                <!-- Các lựa chọn -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 text-left" id="quiz-options">
+                    <!-- Nút được tạo bằng JS -->
+                </div>
+
+                <!-- Phản hồi sau khi chọn -->
+                <div id="quiz-feedback" class="mt-6 hidden p-4 rounded-xl text-center font-medium animate-bounce">
+                    <!-- JS sẽ điền thông báo Đúng/Sai vào đây -->
+                </div>
+            </div>
+
+            <!-- Nút Next Quiz -->
+            <div class="w-full text-center">
+                <button id="btn-next-quiz" onclick="generateQuiz()" class="hidden btn-transition mx-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:bg-indigo-700 hover:shadow-xl items-center gap-2">
+                    Câu tiếp theo 🚀
+                </button>
+            </div>
+            
+        </section>
+    </main>
+
+    <script>
+        // DỮ LIỆU TỪ VỰNG TỪ GIÁO VIÊN
+        const vocabData = [
+            {"word":"in search of","type":"phr","phonetic":"/in ˈsɜːtʃ əv/","meaning":"để tìm kiếm"},
+            {"word":"standard of living","type":"phr.n","phonetic":"/ˈstændəd əv ˈlɪvɪŋ/","meaning":"mức sống"},
+            {"word":"alleviate","type":"v","phonetic":"/əˈliːvieɪt/","meaning":"làm giảm, xoa dịu"},
+            {"word":"overcrowding","type":"n","phonetic":"/ˌəʊvəˈkraʊdɪŋ/","meaning":"tình trạng quá tải dân số"},
+            {"word":"traffic congestion","type":"n.phr","phonetic":"/ˈtræfɪk kənˈdʒestʃn/","meaning":"tắc nghẽn giao thông"},
+            {"word":"hygiene","type":"n","phonetic":"/ˈhaɪdʒiːn/","meaning":"vệ sinh"},
+            {"word":"medical","type":"adj","phonetic":"/ˈmedɪkl/","meaning":"thuộc y tế"},
+            {"word":"infection","type":"n","phonetic":"/ɪnˈfekʃn/","meaning":"sự nhiễm bệnh, bệnh truyền nhiễm"},
+            {"word":"agriculture","type":"n","phonetic":"/ˈæɡrɪkʌltʃə(r)/","meaning":"nông nghiệp"},
+            {"word":"natural disaster","type":"n.phr","phonetic":"/ˈnætʃrəl dɪˈzɑːstə(r)/","meaning":"thiên tai"},
+            {"word":"takeaway","type":"n","phonetic":"/ˈteɪkəweɪ/","meaning":"đồ ăn mang đi"},
+            {"word":"single-use","type":"adj","phonetic":"/ˈsɪŋɡl juːs/","meaning":"dùng một lần"},
+            {"word":"unwilling","type":"adj","phonetic":"/ʌnˈwɪlɪŋ/","meaning":"không sẵn lòng"},
+            {"word":"undeniable","type":"adj","phonetic":"/ˌʌndɪˈnaɪəbl/","meaning":"không thể phủ nhận"},
+            {"word":"lay","type":"v","phonetic":"/leɪ/","meaning":"đẻ (trứng)"},
+            {"word":"countless","type":"adj","phonetic":"/ˈkaʊntləs/","meaning":"vô số"},
+            {"word":"productivity","type":"n","phonetic":"/ˌprɒdʌkˈtɪvəti/","meaning":"năng suất"},
+            {"word":"health tracking","type":"n.phr","phonetic":"/helθ ˈtrækɪŋ/","meaning":"theo dõi sức khỏe"},
+            {"word":"myth","type":"n","phonetic":"/mɪθ/","meaning":"huyền thoại; quan niệm sai lầm"},
+            {"word":"consume","type":"v","phonetic":"/kənˈsjuːm/","meaning":"tiêu thụ"},
+            {"word":"humanlike","type":"adj","phonetic":"/ˈhjuːmənlaɪk/","meaning":"giống con người"},
+            {"word":"give birth to","type":"phr","phonetic":"/ɡɪv bɜːθ tuː/","meaning":"sinh ra"},
+            {"word":"represent","type":"v","phonetic":"/ˌrepriˈzent/","meaning":"đại diện, thể hiện"},
+            {"word":"advancement","type":"n","phonetic":"/ədˈvɑːnsmənt/","meaning":"sự tiến bộ"},
+            {"word":"robotics","type":"n","phonetic":"/rəʊˈbɒtɪks/","meaning":"ngành robot học"},
+            {"word":"counter-urbanisation","type":"n","phonetic":"/ˌkaʊntə ˌɜːbənaɪˈzeɪʃn/","meaning":"phản đô thị hóa"},
+            {"word":"nine-to-five","type":"phr","phonetic":"/ˌnaɪn tə ˈfaɪv/","meaning":"(công việc) hành chính (9 giờ - 5 giờ)"},
+            {"word":"perk","type":"n","phonetic":"/pɜːk/","meaning":"phúc lợi, đặc quyền"},
+            {"word":"work-life balance","type":"n.phr","phonetic":"/wɜːk laɪf ˈbæləns/","meaning":"cân bằng công việc và cuộc sống"},
+            {"word":"consumption","type":"n","phonetic":"/kənˈsʌmpʃn/","meaning":"sự tiêu dùng"},
+            {"word":"alternative","type":"n/adj","phonetic":"/ɔːlˈtɜːnətɪv/","meaning":"sự thay thế / thay thế"},
+            {"word":"fossil fuel","type":"n.phr","phonetic":"/ˈfɒsl fjuəl/","meaning":"nhiên liệu hóa thạch"},
+            {"word":"weight loss","type":"n.phr","phonetic":"/weɪt lɒs/","meaning":"giảm cân"},
+            {"word":"come down to","type":"phr.v","phonetic":"/kʌm daʊn tuː/","meaning":"chung quy lại là"},
+            {"word":"deficit","type":"n","phonetic":"/ˈdefɪsɪt/","meaning":"thâm hụt"},
+            {"word":"in the long run","type":"phr","phonetic":"/ɪn ðə lɒŋ rʌn/","meaning":"về lâu dài"},
+            {"word":"ingredient","type":"n","phonetic":"/ɪnˈɡriːdiənt/","meaning":"nguyên liệu"},
+            {"word":"nutrient","type":"n","phonetic":"/ˈnuːtriənt/","meaning":"chất dinh dưỡng"},
+            {"word":"home-cooked","type":"adj","phonetic":"/həʊm-kʊkt/","meaning":"được nấu tại nhà"},
+            {"word":"preservative","type":"n","phonetic":"/prɪˈzɜːvətɪv/","meaning":"chất bảo quản"},
+            {"word":"option","type":"n","phonetic":"/ˈɒpʃn/","meaning":"lựa chọn"},
+            {"word":"passion","type":"n","phonetic":"/ˈpæʃn/","meaning":"đam mê"},
+            {"word":"financial","type":"adj","phonetic":"/faɪˈnænʃl/","meaning":"thuộc tài chính"},
+            {"word":"stable","type":"adj","phonetic":"/ˈsteɪbl/","meaning":"ổn định"},
+            {"word":"massive","type":"adj","phonetic":"/ˈmæsɪv/","meaning":"to lớn, đồ sộ"},
+            {"word":"unprecedented","type":"adj","phonetic":"/ʌnˈpresɪdentɪd/","meaning":"chưa từng có"},
+            {"word":"misleading","type":"adj","phonetic":"/ˌmɪsˈliːdɪŋ/","meaning":"gây hiểu lầm"},
+            {"word":"verify","type":"v","phonetic":"/ˈverɪfaɪ/","meaning":"xác minh"},
+            {"word":"confuse","type":"v","phonetic":"/kənˈfjuːz/","meaning":"làm bối rối"},
+            {"word":"mislead","type":"v","phonetic":"/ˌmɪsˈliːd/","meaning":"lừa dối, dẫn sai"},
+            {"word":"overwhelm","type":"v","phonetic":"/ˌəʊvəˈwelm/","meaning":"choáng ngợp, áp đảo"},
+            {"word":"speciality","type":"n","phonetic":"/ˌspeʃiˈæləti/","meaning":"đặc sản"},
+            {"word":"replenish","type":"v","phonetic":"/rɪˈplenɪʃ/","meaning":"làm đầy lại, bổ sung"},
+            {"word":"geothermal","type":"adj","phonetic":"/ˌdʒiːəʊˈθɜːml/","meaning":"địa nhiệt"},
+            {"word":"internal","type":"adj","phonetic":"/ɪnˈtɜːnl/","meaning":"bên trong, nội bộ"},
+            {"word":"infrastructure","type":"n","phonetic":"/ˈɪnfrəstrʌktʃə(r)/","meaning":"cơ sở hạ tầng"},
+            {"word":"long-term","type":"adj","phonetic":"/lɒŋ tɜːm/","meaning":"dài hạn"},
+            {"word":"combat","type":"v","phonetic":"/ˈkɒmbæt/","meaning":"chống lại"},
+            {"word":"processed food","type":"n. phr","phonetic":"/ˈprəʊsest fuːd/","meaning":"thực phẩm chế biến"},
+            {"word":"refined sugar","type":"n. phr","phonetic":"/rɪˈfaɪnd ˈʃʊɡə(r)/","meaning":"đường tinh luyện"},
+            {"word":"nutritional","type":"adj","phonetic":"/njuˈtrɪʃənl/","meaning":"thuộc về dinh dưỡng"},
+            {"word":"fibre","type":"n","phonetic":"/ˈfaɪbə(r)/","meaning":"chất xơ"},
+            {"word":"weight gain","type":"n. phr","phonetic":"/weɪt ɡeɪn/","meaning":"tăng cân"},
+            {"word":"tooth decay","type":"n. phr","phonetic":"/tuːθ dɪˈkeɪ/","meaning":"sâu răng"},
+            {"word":"diabetes","type":"n","phonetic":"/ˌdaɪəˈbiːtiːz/","meaning":"bệnh tiểu đường"}
+        ];
+
+        // --- TRẠNG THÁI (STATE) ---
+        let currentCardIndex = 0;
+        let isFlipped = false;
+        
+        let currentQuizWord = null;
+        let quizScore = 0;
+        const totalWords = vocabData.length;
+
+        // --- HÀM ĐIỀU CHUYỂN TAB ---
+        function switchTab(tabName) {
+            const fcSection = document.getElementById('section-flashcard');
+            const quizSection = document.getElementById('section-quiz');
+            const btnFc = document.getElementById('tab-flashcard');
+            const btnQuiz = document.getElementById('tab-quiz');
+
+            if (tabName === 'flashcard') {
+                fcSection.classList.remove('hidden');
+                fcSection.classList.add('flex');
+                quizSection.classList.add('hidden');
+                quizSection.classList.remove('flex');
+                
+                // Style nút
+                btnFc.classList.replace('text-slate-500', 'text-blue-700');
+                btnFc.classList.replace('bg-transparent', 'bg-blue-100');
+                btnQuiz.classList.replace('text-blue-700', 'text-slate-500');
+                btnQuiz.classList.replace('bg-blue-100', 'bg-transparent');
+                
+            } else {
+                quizSection.classList.remove('hidden');
+                quizSection.classList.add('flex');
+                fcSection.classList.add('hidden');
+                fcSection.classList.remove('flex');
+                
+                // Style nút
+                btnQuiz.classList.replace('text-slate-500', 'text-blue-700');
+                btnQuiz.classList.replace('bg-transparent', 'bg-blue-100');
+                btnFc.classList.replace('text-blue-700', 'text-slate-500');
+                btnFc.classList.replace('bg-blue-100', 'bg-transparent');
+                
+                // Khởi tạo quiz nếu chưa có
+                if(!currentQuizWord) generateQuiz();
+            }
+        }
+
+        // ==========================================
+        //         PHẦN LOGIC: FLASHCARDS
+        // ==========================================
+        function loadFlashcard(index) {
+            const data = vocabData[index];
+            document.getElementById('fc-word').innerText = data.word;
+            document.getElementById('fc-type').innerText = data.type;
+            document.getElementById('fc-phonetic').innerText = data.phonetic;
+            document.getElementById('fc-meaning').innerText = data.meaning;
+            document.getElementById('fc-counter').innerText = `${index + 1}/${totalWords}`;
+            
+            // Luôn lật về mặt trước khi đổi thẻ
+            if (isFlipped) {
+                toggleCard(); 
+            }
+        }
+
+        function toggleCard() {
+            const card = document.getElementById('flashcard');
+            card.classList.toggle('flipped');
+            isFlipped = !isFlipped;
+        }
+
+        function nextCard() {
+            currentCardIndex++;
+            if (currentCardIndex >= totalWords) currentCardIndex = 0; // Vòng lại
+            
+            // Xử lý mượt mà: nếu đang lật thì lật lại trước, đợi animation rồi mới đổi nội dung
+            if (isFlipped) {
+                toggleCard();
+                setTimeout(() => loadFlashcard(currentCardIndex), 200); 
+            } else {
+                loadFlashcard(currentCardIndex);
+            }
+        }
+
+        function prevCard() {
+            currentCardIndex--;
+            if (currentCardIndex < 0) currentCardIndex = totalWords - 1;
+            
+            if (isFlipped) {
+                toggleCard();
+                setTimeout(() => loadFlashcard(currentCardIndex), 200);
+            } else {
+                loadFlashcard(currentCardIndex);
+            }
+        }
+
+        // ==========================================
+        //         PHẦN LOGIC: TRẮC NGHIỆM
+        // ==========================================
+        function getRandomInt(max) {
+            return Math.floor(Math.random() * max);
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function generateQuiz() {
+            // Ẩn nút next và feedback
+            document.getElementById('btn-next-quiz').classList.add('hidden');
+            document.getElementById('btn-next-quiz').classList.remove('flex');
+            const feedbackEl = document.getElementById('quiz-feedback');
+            feedbackEl.classList.add('hidden');
+            
+            // Xóa nội dung nút cũ
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+
+            // Chọn 1 từ ngẫu nhiên làm đề
+            currentQuizWord = vocabData[getRandomInt(totalWords)];
+            
+            document.getElementById('quiz-word').innerText = currentQuizWord.word;
+            document.getElementById('quiz-phonetic').innerText = currentQuizWord.phonetic;
+
+            // Tạo danh sách đáp án (1 đúng, 3 sai)
+            let options = [currentQuizWord.meaning];
+            while (options.length < 4) {
+                let randomWord = vocabData[getRandomInt(totalWords)];
+                if (!options.includes(randomWord.meaning)) {
+                    options.push(randomWord.meaning);
+                }
+            }
+            
+            // Đảo vị trí các đáp án
+            options = shuffleArray(options);
+
+            // Render các nút đáp án
+            const labels = ['A', 'B', 'C', 'D'];
+            options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-option w-full border-2 border-slate-200 rounded-xl p-4 text-left text-slate-700 font-semibold focus:outline-none flex gap-3 items-center';
+                btn.innerHTML = `<span class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold">${labels[idx]}</span> <span>${opt}</span>`;
+                btn.onclick = () => checkAnswer(btn, opt);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(clickedBtn, selectedMeaning) {
+            const isCorrect = (selectedMeaning === currentQuizWord.meaning);
+            const allBtns = document.querySelectorAll('.quiz-option');
+            
+            // Vô hiệu hóa tất cả các nút
+            allBtns.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('opacity-80', 'cursor-not-allowed');
+                
+                // Highlight đáp án đúng
+                if (btn.innerHTML.includes(currentQuizWord.meaning)) {
+                    btn.classList.add('correct');
+                    btn.classList.remove('border-slate-200');
+                }
+            });
+
+            const feedbackEl = document.getElementById('quiz-feedback');
+            feedbackEl.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
+
+            if (isCorrect) {
+                clickedBtn.classList.add('correct');
+                quizScore += 10;
+                document.getElementById('quiz-score').innerText = quizScore;
+                
+                feedbackEl.classList.add('bg-green-100', 'text-green-700');
+                feedbackEl.innerHTML = '🎉 Tuyệt vời! Bạn chọn đúng rồi.';
+            } else {
+                clickedBtn.classList.add('wrong');
+                feedbackEl.classList.add('bg-red-100', 'text-red-700');
+                feedbackEl.innerHTML = `😢 Rất tiếc, sai rồi.<br>Nghĩa đúng là: <strong>"${currentQuizWord.meaning}"</strong>`;
+            }
+
+            // Hiện nút câu tiếp theo
+            const nextBtn = document.getElementById('btn-next-quiz');
+            nextBtn.classList.remove('hidden');
+            nextBtn.classList.add('flex');
+        }
+
+        // KHỞI TẠO APP
+        window.onload = () => {
+            loadFlashcard(currentCardIndex);
+            // Mặc định hiện tab flashcard khi load trang (đã xử lý ở HTML/CSS, khởi tạo data ở đây)
+        }
+    </script>
+</body>
+</html>
